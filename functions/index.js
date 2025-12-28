@@ -1,6 +1,11 @@
 const functions = require('firebase-functions');
+const admin = require('firebase-admin');
 const express = require('express');
 const cors = require('cors');
+
+// 初始化 Firebase Admin
+admin.initializeApp();
+const db = admin.firestore();
 
 // 初始化 Express 應用
 const app = express();
@@ -12,10 +17,6 @@ app.use(cors({
 }));
 
 app.use(express.json());
-
-// 記憶體資料庫
-let records = [];
-let nextId = 1;
 
 // 工具函數
 function calculateStatus(habitRecords, days) {
@@ -82,7 +83,7 @@ function calculateStatus(habitRecords, days) {
 }
 
 // API 路由
-app.post('/records', (req, res) => {
+app.post('/records', async (req, res) => {
   try {
     const { habit_name, date, completed, notes } = req.body;
 
@@ -94,22 +95,27 @@ app.post('/records', (req, res) => {
     }
 
     const record = {
-      id: nextId++,
       habit_name,
       date,
       completed,
       notes: notes || null,
-      created_at: new Date().toISOString()
+      created_at: admin.firestore.FieldValue.serverTimestamp()
     };
 
-    records.push(record);
+    const docRef = await db.collection('habitRecords').add(record);
+    const savedRecord = await docRef.get();
 
     res.status(201).json({
       success: true,
       message: '記錄已新增',
-      data: record
+      data: {
+        id: docRef.id,
+        ...savedRecord.data(),
+        created_at: new Date().toISOString()
+      }
     });
   } catch (error) {
+    console.error('Error adding record:', error);
     res.status(500).json({
       success: false,
       message: error.message
@@ -117,7 +123,7 @@ app.post('/records', (req, res) => {
   }
 });
 
-app.get('/records', (req, res) => {
+app.get('/records', async (req, res) => {
   try {
     const days = parseInt(req.query.days) || 7;
     const habit_name = req.query.habit;
@@ -126,19 +132,27 @@ app.get('/records', (req, res) => {
     const start_date = new Date();
     start_date.setDate(end_date.getDate() - (days - 1));
 
-    // 過濾記錄
-    let filtered_records = records.filter(record => {
-      const record_date = new Date(record.date);
-      return record_date >= start_date && record_date <= end_date;
-    });
+    // 查詢 Firestore
+    let query = db.collection('habitRecords')
+      .where('date', '>=', start_date.toISOString().split('T')[0])
+      .where('date', '<=', end_date.toISOString().split('T')[0]);
 
     if (habit_name) {
-      filtered_records = filtered_records.filter(r => r.habit_name === habit_name);
+      query = query.where('habit_name', '==', habit_name);
     }
+
+    const snapshot = await query.get();
+    const records = [];
+    snapshot.forEach(doc => {
+      records.push({
+        id: doc.id,
+        ...doc.data()
+      });
+    });
 
     // 按習慣分組
     const habits_summary = {};
-    filtered_records.forEach(record => {
+    records.forEach(record => {
       if (!habits_summary[record.habit_name]) {
         habits_summary[record.habit_name] = [];
       }
@@ -183,6 +197,7 @@ app.get('/records', (req, res) => {
       }
     });
   } catch (error) {
+    console.error('Error getting records:', error);
     res.status(500).json({
       success: false,
       message: error.message

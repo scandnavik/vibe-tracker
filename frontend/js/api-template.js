@@ -1,5 +1,8 @@
-// Firebase Functions 生產環境
-const API_BASE_URL = 'https://us-central1-vibe-tracker-98ca59.cloudfunctions.net/api';
+// 請將此 URL 中的 PROJECT_ID 替換為你的 Firebase 專案 ID
+// 例如：如果你的專案 ID 是 vibe-tracker-2024
+// 就改為：https://us-central1-vibe-tracker-2024.cloudfunctions.net/api
+
+const API_BASE_URL = 'https://us-central1-PROJECT_ID.cloudfunctions.net/api';
 
 class HabitAPI {
     static async addRecord(habitName, date, completed, notes = '') {
