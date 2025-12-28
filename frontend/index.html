@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>節奏型行為追蹤</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>節奏型行為追蹤</h1>
+        </header>
+
+        <main>
+            <!-- 新增記錄表單 -->
+            <section class="add-record">
+                <h2>新增記錄</h2>
+                <form id="recordForm">
+                    <div class="form-group">
+                        <label for="habitName">習慣名稱：</label>
+                        <input type="text" id="habitName" name="habitName" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="recordDate">日期：</label>
+                        <input type="date" id="recordDate" name="recordDate" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="completed">完成狀態：</label>
+                        <select id="completed" name="completed" required>
+                            <option value="">請選擇</option>
+                            <option value="true">已完成</option>
+                            <option value="false">未完成</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="notes">備註：</label>
+                        <textarea id="notes" name="notes" rows="3"></textarea>
+                    </div>
+                    
+                    <button type="submit">新增記錄</button>
+                </form>
+            </section>
+
+            <!-- 查詢控制 -->
+            <section class="query-controls">
+                <h2>查詢記錄</h2>
+                <div class="controls">
+                    <label for="queryDays">查詢天數：</label>
+                    <select id="queryDays">
+                        <option value="7">最近 7 天</option>
+                        <option value="14">最近 14 天</option>
+                        <option value="30">最近 30 天</option>
+                    </select>
+                    
+                    <label for="queryHabit">習慣篩選：</label>
+                    <select id="queryHabit">
+                        <option value="">所有習慣</option>
+                    </select>
+                    
+                    <button id="queryBtn">查詢</button>
+                </div>
+            </section>
+
+            <!-- 結果顯示 -->
+            <section class="results">
+                <div id="loading" class="loading" style="display: none;">載入中...</div>
+                <div id="error" class="error" style="display: none;"></div>
+                <div id="habitsContainer"></div>
+            </section>
+        </main>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
